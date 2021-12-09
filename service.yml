@@ -15,18 +15,26 @@ Parameters:
   HealthCheckPath:
     Type: String
     Default: /health
-    Description: Path to perform the healthcheck on each instance.
+    Description: Path to perform the health check on each instance.
   HealthCheckIntervalSeconds:
     Type: Number
     Default: 5
     Description: Number of seconds to wait between each health check.
-  ImageUrl:
+  FEImageUrl:
     Type: String
-    Description: The url of a docker image that will handle incoming traffic.
-  ContainerPort:
+    Description: The url of the FE docker image that will handle incoming traffic.
+  BEImageUrl:
+    Type: String
+    Description: The url of the BE docker image that will handle incoming traffic.
+  FEContainerPort:
     Type: Number
-    Default: 80
-    Description: The port number the application inside the docker container
+    Default: 3000
+    Description: The port number the FE application inside the docker container
+      is binding to.
+  BEContainerPort:
+    Type: Number
+    Default: 8080
+    Description: The port number the FE application inside the docker container
       is binding to.
   ContainerCpu:
     Type: Number
@@ -98,10 +106,10 @@ Resources:
         Fn::ImportValue:
           !Join [':', [!Ref 'NetworkStackName', 'ECSTaskExecutionRole']]
       ContainerDefinitions:
-        - Name: !Ref 'ServiceName'
+        - Name: !Join [!Ref 'ServiceName', '-be']
           Cpu: !Ref 'ContainerCpu'
           Memory: !Ref 'ContainerMemory'
-          Image: !Ref 'ImageUrl'
+          Image: !Ref 'BEImageUrl'
           Environment:
             - Name: DB_TYPE
               Value: 'mysql'
@@ -124,7 +132,19 @@ Resources:
                   - Fn::ImportValue: !Join [':', [!Ref 'DatabaseStackName', 'Secret']]
                   - ':SecretString:password}}'
           PortMappings:
-            - ContainerPort: !Ref 'ContainerPort'
+            - ContainerPort: !Ref 'FEContainerPort'
+          LogConfiguration:
+            LogDriver: 'awslogs'
+            Options:
+              awslogs-group: !Ref 'ServiceName'
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: !Ref 'ServiceName'
+        - Name: !Join [!Ref 'ServiceName', '-fe']
+          Cpu: !Ref 'ContainerCpu'
+          Memory: !Ref 'ContainerMemory'
+          Image: !Ref 'FEImageUrl'
+          PortMappings:
+            - ContainerPort: !Ref 'FEContainerPort'
           LogConfiguration:
             LogDriver: 'awslogs'
             Options:
