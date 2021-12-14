@@ -7,8 +7,8 @@ jobs:
   deploy-service-stack:
     runs-on: ubuntu-latest
     steps:
-    - name: Get latest images
+    - name: Get latest FE release image
       uses: sergeysova/jq-action@v2
-      id: version
-      run: |
-          echo ::set-output name=ENV_NAME::${wget -q https://registry.hub.docker.com/v1/repositories/minimicrowave/bs-ui/tags -O - | jq 'map(select(.name | contains("RELEASE"))) | .[0].name'}
+      id: fe_release_version
+      with: 
+        cmd: wget -q https://registry.hub.docker.com/v1/repositories/minimicrowave/bs-ui/tags -O - | jq 'map(select(.name | contains("RELEASE"))) | .[0].name'
