@@ -23,4 +23,4 @@ jobs:
     
     - 
       name: Show BE and FE release versions
-        run: 'echo "version ${{ steps.fe_release_version.outputs.value }}" "version ${{ steps.be_release_version.outputs.value }}"'
+      run: 'echo "version ${{ steps.fe_release_version.outputs.value }}" "version ${{ steps.be_release_version.outputs.value }}"'
