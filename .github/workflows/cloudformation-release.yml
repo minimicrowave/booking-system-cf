@@ -24,3 +24,10 @@ jobs:
     - 
       name: Show BE and FE release versions
       run: 'echo "version ${{ steps.fe_release_version.outputs.value }}" "version ${{ steps.be_release_version.outputs.value }}"'
+    - 
+      name: Release image check
+      if: ${{ steps.fe_release_version.outputs.value }} = "null" || ${{ steps.be_release_version.outputs.value }} = "null"
+      uses: actions/github-script@v3
+      with:
+        script: |
+            core.setFailed('FE or BE release versions missing!')
