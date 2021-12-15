@@ -28,7 +28,7 @@ jobs:
       id: network-stack
       uses: aws-actions/aws-cloudformation-github-deploy@v1.0.3
       with:
-        name: Booking System Network Stack
+        name: bs-network-stack
         template: network.yml
         no-fail-on-empty-changeset: "1"
 
@@ -48,10 +48,10 @@ jobs:
         aws-region: ${{ github.event.inputs.region}}
 
     - name: Deploy RDS Stack
-      id: eks-cluster
+      id: rds-stack
       uses: aws-actions/aws-cloudformation-github-deploy@v1.0.3
       with:
-        name: Booking System RDS Stack
+        name: bs-rds-stack
         template: database.yml
         no-fail-on-empty-changeset: "1"
     
