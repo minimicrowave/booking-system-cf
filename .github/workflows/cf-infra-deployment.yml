@@ -18,7 +18,7 @@ jobs:
 
     - name: Configure AWS credentials
       id: creds
-      uses: aws-actions/configure-aws-credentials@v1.0.3
+      uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -26,7 +26,7 @@ jobs:
 
     - name: Deploy Network Stack
       id: network-stack
-      uses: aws-actions/aws-cloudformation-github-deploy@master
+      uses: aws-actions/aws-cloudformation-github-deploy@v1.0.3
       with:
         name: Booking System Network Stack
         template: network.yml
@@ -41,7 +41,7 @@ jobs:
 
     - name: Configure AWS credentials
       id: creds
-      uses: aws-actions/configure-aws-credentials@v1.0.3
+      uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -49,7 +49,7 @@ jobs:
 
     - name: Deploy RDS Stack
       id: eks-cluster
-      uses: aws-actions/aws-cloudformation-github-deploy@master
+      uses: aws-actions/aws-cloudformation-github-deploy@v1.0.3
       with:
         name: Booking System RDS Stack
         template: database.yml
