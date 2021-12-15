@@ -1,12 +1,13 @@
-name: Deploy CloudFormation Network & RDS Stack 
-on:
+name: Deploy CloudFormation Network & RDS Stack
+
+on: 
   workflow_dispatch:
     inputs:
       region:
         description: 'AWS Region'
         required: true
         default: 'ap-southeast-1'
-       keypair:
+      keypair:
         description: 'SSH Key Pair'
         required: true
 
