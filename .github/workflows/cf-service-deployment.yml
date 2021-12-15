@@ -1,4 +1,4 @@
-name: CloudFormation Release
+name: Deploy CloudFormation Service 
 env:
   CI: false
 on: [ push ]
@@ -12,14 +12,14 @@ jobs:
       uses: sergeysova/jq-action@v2
       id: fe_release_version
       with: 
-        cmd: wget -q https://registry.hub.docker.com/v1/repositories/minimicrowave/bs-ui/tags -O - | jq 'map(select(.name | contains("RELEASE"))) | .[0].name'
+        cmd: wget -q https://registry.hub.docker.com/v1/repositories/minimicrowave/bs-ui/tags -O - | jq 'map(select(.name | contains("RELEASE"))) | last | .[0].name'
 
     - 
       name: Get latest BE release image
       uses: sergeysova/jq-action@v2
       id: be_release_version
       with: 
-        cmd: wget -q https://registry.hub.docker.com/v1/repositories/minimicrowave/bs-api/tags -O - | jq 'map(select(.name | contains("RELEASE"))) | .[0].name'
+        cmd: wget -q https://registry.hub.docker.com/v1/repositories/minimicrowave/bs-api/tags -O - | jq 'map(select(.name | contains("RELEASE"))) | last | .name'
     
     - 
       name: Show BE and FE release versions

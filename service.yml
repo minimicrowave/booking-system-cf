@@ -12,7 +12,7 @@ Parameters:
   ServiceName:
     Type: String
     Description: A human-readable name for the service.
-  HealthCheckPath:
+ HealthCheckPath:
     Type: String
     Default: /health
     Description: Path to perform the health check on each instance.
@@ -28,7 +28,7 @@ Parameters:
     Description: The url of the BE docker image that will handle incoming traffic.
   FEContainerPort:
     Type: Number
-    Default: 3000
+    Default: 80
     Description: The port number the FE application inside the docker container
       is binding to.
   BEContainerPort:
@@ -66,7 +66,7 @@ Resources:
       HealthyThresholdCount: 2
       TargetType: ip
       Name: !Ref 'ServiceName'
-      Port: !Ref 'ContainerPort'
+      Port: !Ref 'BEContainerPort'
       Protocol: HTTP
       UnhealthyThresholdCount: 2
       VpcId:
