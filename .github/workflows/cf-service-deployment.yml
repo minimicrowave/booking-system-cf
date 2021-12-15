@@ -1,4 +1,4 @@
-name: Deploy CloudFormation Service 
+name: Deploy Service Stack
 env:
   CI: false
 on: [ push ]
