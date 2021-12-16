@@ -40,6 +40,6 @@ jobs:
     needs: check-release-images
     runs-on: ubuntu-latest
     steps:
-  
+    -
       run: echo ${{needs.check-release-images.outputs.FE_IMAGE}} ${{needs.check-release-images.outputs.BE_IMAGE}}
 
