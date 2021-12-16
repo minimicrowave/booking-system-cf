@@ -1,7 +1,13 @@
 name: Deploy Service Stack
 env:
   CI: false
-on: [ workflow_dispatch ]
+on: 
+  workflow_dispatch:
+    inputs:
+      region:
+        description: 'AWS Region'
+        required: true
+        default: 'ap-southeast-1'
 
 jobs:
   check-release-images:
@@ -41,5 +47,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     -
-      run: echo ${{needs.check-release-images.outputs.FE_IMAGE}} ${{needs.check-release-images.outputs.BE_IMAGE}}
+      run: echo Deploying FE - ${{needs.check-release-images.outputs.FE_IMAGE}}, BE - ${{needs.check-release-images.outputs.BE_IMAGE}}
+    - name: Configure AWS credentials
+      id: creds
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ github.event.inputs.region}}
 
+    - name: Deploy Service Stack
+      id: service-stack
+      uses: aws-actions/aws-cloudformation-github-deploy@v1.0.3
+      with:
+        name: bs-service-stack
+        template: service.yml
+        no-fail-on-empty-changeset: "1"
+        parameter-overrides: >-
+          NetworkStackName=bs-network-stack,
+          DatabaseStackName=bs-rds-stack,
+          ServiceName=bs_service,
+          FEImageUrl=docker.io/minimicrowave/bs-ui:${{needs.check-release-images.outputs.FE_IMAGE}},
+          BEImageUrl=docker.io/minimicrowave/bs-api:${{needs.check-release-images.outputs.BE_IMAGE}}
