@@ -1,7 +1,7 @@
 name: Deploy Service Stack
 env:
   CI: false
-on: [ push, workflow_dispatch ]
+on: [ workflow_dispatch ]
 
 jobs:
   deploy-service-stack:
@@ -12,7 +12,7 @@ jobs:
       uses: sergeysova/jq-action@v2
       id: fe_release_version
       with: 
-        cmd: wget -q https://registry.hub.docker.com/v1/repositories/minimicrowave/bs-ui/tags -O - | jq 'map(select(.name | contains("RELEASE"))) | last | .[0].name'
+        cmd: wget -q https://registry.hub.docker.com/v1/repositories/minimicrowave/bs-ui/tags -O - | jq 'map(select(.name | contains("RELEASE"))) | last | .name'
 
     - 
       name: Get latest BE release image
