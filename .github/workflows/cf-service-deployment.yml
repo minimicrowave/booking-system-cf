@@ -6,6 +6,9 @@ on: [ workflow_dispatch ]
 jobs:
   check-release-images:
     runs-on: ubuntu-latest
+    outputs:
+      FE_IMAGE: ${{ steps.fe_release_version.outputs.value }}
+      BE_IMAGE: ${{ steps.be_release_version.outputs.value }}
     steps:
     -
       name: Get latest FE release image
@@ -25,8 +28,6 @@ jobs:
       name: Show BE and FE release versions
       run: > 
         echo "FE version: ${{ steps.fe_release_version.outputs.value }}, BE version: ${{ steps.be_release_version.outputs.value }}"
-        echo '::set-output name=FE_IMAGE::${{ steps.fe_release_version.outputs.value }}'
-        echo '::set-output name=BE_IMAGE::${{ steps.be_release_version.outputs.value }}'
     - 
       name: Release image check
       if: steps.fe_release_version.outputs.value  == 'null' || steps.be_release_version.outputs.value == 'null'
@@ -34,3 +35,11 @@ jobs:
       with:
         script: |
             core.setFailed('FE or BE release versions missing!')
+  
+  deploy-service-stack:
+    needs: check-release-images
+    runs-on: ubuntu-latest
+    steps:
+  
+      run: echo ${{needs.check-release-images.outputs.FE_IMAGE}} ${{needs.check-release-images.outputs.BE_IMAGE}}
+
