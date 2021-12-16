@@ -106,7 +106,7 @@ Resources:
         Fn::ImportValue:
           !Join [':', [!Ref 'NetworkStackName', 'ECSTaskExecutionRole']]
       ContainerDefinitions:
-        - Name: !Join [!Ref 'ServiceName', '-be']
+        - Name: !Join ['', [!Ref 'ServiceName', '-be']]
           Cpu: !Ref 'ContainerCpu'
           Memory: !Ref 'ContainerMemory'
           Image: !Ref 'BEImageUrl'
@@ -114,11 +114,14 @@ Resources:
             - Name: DB_TYPE
               Value: 'mysql'
             - Name: DB_HOST
-              Value:  Fn::ImportValue: [!Ref 'DatabaseStackName', 'EndpointAddress']
+              Value: 
+                Fn::ImportValue: !Join [':', [!Ref 'DatabaseStackName', 'EndpointAddress']]
             - Name: DB_PORT
-              Value:  Fn::ImportValue: [!Ref 'DatabaseStackName', 'EndpointPort']      
+              Value:  
+                Fn::ImportValue: !Join [':', [!Ref 'DatabaseStackName', 'EndpointPort']]  
             - Name: DB_NAME
-              Value:  Fn::ImportValue: [!Ref 'DatabaseStackName', 'DBName']
+              Value:  
+                Fn::ImportValue: !Join [':', [!Ref 'DatabaseStackName', 'DBName']]
             - Name: DB_USERNAME
               Value: !Join
                 - ''
@@ -130,7 +133,7 @@ Resources:
                 - ''
                 - - '{{resolve:secretsmanager:'
                   - Fn::ImportValue: !Join [':', [!Ref 'DatabaseStackName', 'Secret']]
-                  - ':SecretString:password}}'
+          #         - ':SecretString:password}}'
           PortMappings:
             - ContainerPort: !Ref 'FEContainerPort'
           LogConfiguration:
@@ -139,7 +142,7 @@ Resources:
               awslogs-group: !Ref 'ServiceName'
               awslogs-region: !Ref AWS::Region
               awslogs-stream-prefix: !Ref 'ServiceName'
-        - Name: !Join [!Ref 'ServiceName', '-fe']
+        - Name: !Join ['', [!Ref 'ServiceName', '-fe']]
           Cpu: !Ref 'ContainerCpu'
           Memory: !Ref 'ContainerMemory'
           Image: !Ref 'FEImageUrl'
@@ -178,6 +181,9 @@ Resources:
                 !Join [':', [!Ref 'NetworkStackName', 'PublicSubnetTwo']]
       TaskDefinition: !Ref 'TaskDefinition'
       LoadBalancers:
-        - ContainerName: !Ref 'ServiceName'
-          ContainerPort: !Ref 'ContainerPort'
+        - ContainerName: !Join ['', [!Ref 'ServiceName', '-fe']]
+          ContainerPort: !Ref 'FEContainerPort'
+          TargetGroupArn: !Ref 'TargetGroup'
+        - ContainerName: !Join ['', [!Ref 'ServiceName', '-be']]
+          ContainerPort: !Ref 'BEContainerPort'
           TargetGroupArn: !Ref 'TargetGroup'
