@@ -18,7 +18,7 @@ Parameters:
     Description: Path to perform the health check on each instance.
   HealthCheckIntervalSeconds:
     Type: Number
-    Default: 5
+    Default: 4
     Description: Number of seconds to wait between each health check.
   FEImageUrl:
     Type: String
@@ -133,9 +133,9 @@ Resources:
                 - ''
                 - - '{{resolve:secretsmanager:'
                   - Fn::ImportValue: !Join [':', [!Ref 'DatabaseStackName', 'Secret']]
-          #         - ':SecretString:password}}'
+                  - ':SecretString:password}}'
           PortMappings:
-            - ContainerPort: !Ref 'FEContainerPort'
+            - ContainerPort: !Ref 'BEContainerPort'
           LogConfiguration:
             LogDriver: 'awslogs'
             Options:
