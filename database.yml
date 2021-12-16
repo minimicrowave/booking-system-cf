@@ -10,10 +10,11 @@ Parameters:
     Default: 'db.t2.micro'
   DBName:
     Type: String
-    Description: The name of the database that is created within the PostgreSQL instance.
+    Description: The name of the database that is created within the MySQL instance.
   DBUsername:
     Type: String
-    Description: The master user name for the PostgreSQL instance.
+    Description: The master user name for the MySQL instance.
+    Default: admin
 Resources:
 
   Secret:
