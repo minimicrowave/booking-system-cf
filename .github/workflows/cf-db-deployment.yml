@@ -32,7 +32,7 @@ jobs:
         template: database.yml
         no-fail-on-empty-changeset: "1"
         parameter-overrides: >-
-          NetworkStackName=bs-rds-stack,
+          NetworkStackName=bs-network-stack,
           DBName=bs_db
     
         
