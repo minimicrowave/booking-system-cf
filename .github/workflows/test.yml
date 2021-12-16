@@ -8,6 +8,10 @@ on:
         required: true
         default: 'ap-southeast-1'
 
+
 jobs:
   echo:
-    run: echo im running!
+    runs-on: ubuntu-latest
+    steps:
+    -
+      run: echo pat testtttt
