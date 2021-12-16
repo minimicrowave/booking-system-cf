@@ -1,0 +1,13 @@
+name: Test PAT
+
+on: 
+  workflow_dispatch:
+    inputs:
+      region:
+        description: 'AWS Region'
+        required: true
+        default: 'ap-southeast-1'
+
+jobs:
+  echo:
+    run: echo im running!
