@@ -57,6 +57,6 @@ jobs:
         no-fail-on-empty-changeset: "1"
         parameter-overrides: >-
           NetworkStackName=bs-rds-stack
-          DBName=bs-db
+          DBName=bs_db
     
         
