@@ -12,7 +12,7 @@ Parameters:
   ServiceName:
     Type: String
     Description: A human-readable name for the service.
- HealthCheckPath:
+  HealthCheckPath:
     Type: String
     Default: /health
     Description: Path to perform the health check on each instance.
