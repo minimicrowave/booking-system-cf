@@ -69,6 +69,8 @@ Resources:
       Port: !Ref 'BEContainerPort'
       Protocol: HTTP
       UnhealthyThresholdCount: 2
+      Matcher:
+        HttpCode: 200
       VpcId:
         Fn::ImportValue:
           !Join [':', [!Ref 'NetworkStackName', 'VPCId']]
