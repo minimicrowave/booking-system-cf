@@ -1,7 +1,7 @@
 name: Deploy Service Stack
 env:
   CI: false
-on: [ push ]
+on: [ push, workflow_dispatch ]
 
 jobs:
   deploy-service-stack:
