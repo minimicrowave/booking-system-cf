@@ -70,6 +70,6 @@ jobs:
         parameter-overrides: >-
           NetworkStackName=bs-network-stack,
           DatabaseStackName=bs-rds-stack,
-          ServiceName=bs_service,
+          ServiceName=bs-service,
           FEImageUrl=docker.io/minimicrowave/bs-ui:${{needs.check-release-images.outputs.FE_IMAGE}},
           BEImageUrl=docker.io/minimicrowave/bs-api:${{needs.check-release-images.outputs.BE_IMAGE}}
