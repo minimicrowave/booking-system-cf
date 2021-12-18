@@ -67,7 +67,7 @@ Resources:
       # TargetType: ip
       # Name: !Ref 'ServiceName'
       # Port: !Ref 'BEContainerPort'
-      # Protocol: HTTP
+      Protocol: HTTP
       # UnhealthyThresholdCount: 2
       # Matcher:
       #   HttpCode: 200
