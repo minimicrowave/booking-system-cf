@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     -
-      run: echo Deploying FE - ${{needs.check-release-images.outputs.FE_IMAGE}}, BE - ${{needs.check-release-images.outputs.BE_IMAGE}}
+      run: echo Deploying FE - docker.io/minimicrowave/bs-ui:${{needs.check-release-images.outputs.FE_IMAGE}}, BE - docker.io/minimicrowave/bs-ui:${{needs.check-release-images.outputs.FE_IMAGE}}
     - 
       name: Checkout
       uses: actions/checkout@v2
