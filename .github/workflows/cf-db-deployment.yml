@@ -7,32 +7,46 @@ on:
         description: 'AWS Region'
         required: true
         default: 'ap-southeast-1'
+      network-stack:
+        description: "Network/VPC Stack"
+        required: true
+        default: bs-network-stack
+      stack-name:
+        description: "Name of deploying stack"
+        required: true
+        default: bs-rds-stack
+      db-name:
+        description: "Name of deploying db"
+        required: true
+        default: bs_db
 
 jobs:
   deploy-rds-stack:
     name: Deploy RDS stack
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
+    - 
+      name: Checkout
       uses: actions/checkout@v2
 
-    - name: Configure AWS credentials
+    - 
+      name: Configure AWS credentials
       id: creds
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ github.event.inputs.region}}
+        aws-region: ${{ github.event.inputs.region }}
 
-    - name: Deploy RDS Stack
-      id: rds-stack
+    - 
+      name: Deploy RDS Stack
       uses: aws-actions/aws-cloudformation-github-deploy@v1.0.3
       with:
-        name: bs-rds-stack
+        name: ${{ github.event.inputs.stack-name }}
         template: database.yml
         no-fail-on-empty-changeset: "1"
         parameter-overrides: >-
-          NetworkStackName=bs-network-stack,
-          DBName=bs_db
+          NetworkStackName=${{ github.event.inputs.network-stack }},
+          DBName=${{ github.event.inputs.db-name }}
     
         

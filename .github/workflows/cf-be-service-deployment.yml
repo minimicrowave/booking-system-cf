@@ -1,0 +1,81 @@
+name: Deploy Service Stack
+env:
+  CI: false
+on: 
+  workflow_dispatch:
+    inputs:
+      region:
+        description: 'AWS Region'
+        required: true
+        default: 'ap-southeast-1'
+      network-stack:
+        description: "Network/VPC Stack"
+        required: true
+        default: bs-network-stack
+      db-stack:
+        description: "Database Stack"
+        required: true
+        default: bs-rds-stack
+      stack-name:
+        description: "Name of deploying stack"
+        required: true
+        default: bs-be-service
+
+
+jobs:
+  check-release-images:
+    runs-on: ubuntu-latest
+    outputs:
+      BE_IMAGE: ${{ steps.be_release_version.outputs.value }}
+    steps:
+    - 
+      name: Get latest BE release image
+      uses: sergeysova/jq-action@v2
+      id: be_release_version
+      with: 
+        cmd: wget -q https://registry.hub.docker.com/v1/repositories/minimicrowave/bs-api/tags -O - | jq 'map(select(.name | contains("RELEASE"))) | last | .name'
+    
+    - 
+      name: Show BE release version
+      run: > 
+        echo "BE version: ${{ steps.be_release_version.outputs.value }}"
+    - 
+      name: Release image check
+      if: steps.be_release_version.outputs.value == 'null'
+      uses: actions/github-script@v3
+      with:
+        script: |
+            core.setFailed('BE release version missing!')
+  
+  deploy-service-stack:
+    needs: check-release-images
+    runs-on: ubuntu-latest
+    steps:
+    -
+      run: echo Deploying BE - docker.io/minimicrowave/bs-api:${{needs.check-release-images.outputs.BE_IMAGE}}
+    - 
+      name: Checkout
+      uses: actions/checkout@v2
+    - 
+      name: Configure AWS credentials
+      id: creds
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ github.event.inputs.region}}
+    - 
+      name: ${{ github.event.inputs.stack-name}}
+      uses: aws-actions/aws-cloudformation-github-deploy@v1.0.3
+      with:
+        name: ${{ github.event.inputs.stack-name}}
+        template: service-be.yml
+        no-fail-on-empty-changeset: "1"
+        parameter-overrides: >-
+          NetworkStackName=${{ github.event.inputs.network-stack }},
+          DatabaseStackName=${{ github.event.inputs.db-stack }},
+          ServiceName=${{ github.event.inputs.stack-name}},
+          ImageUrl=docker.io/minimicrowave/bs-api:${{needs.check-release-images.outputs.BE_IMAGE}},
+          ContainerPort=8080,
+          HealthCheckPath=/health,
+          JwtSecret=${{ secrets.JWT_SECRET }}

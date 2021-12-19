@@ -8,13 +8,20 @@ on:
         description: 'AWS Region'
         required: true
         default: 'ap-southeast-1'
+      network-stack:
+        description: "Network/VPC Stack"
+        required: true
+        default: bs-network-stack
+      stack-name:
+        description: "Name of deploying stack"
+        required: true
+        default: bs-fe-service
 
 jobs:
   check-release-images:
     runs-on: ubuntu-latest
     outputs:
       FE_IMAGE: ${{ steps.fe_release_version.outputs.value }}
-      BE_IMAGE: ${{ steps.be_release_version.outputs.value }}
     steps:
     -
       name: Get latest FE release image
@@ -24,33 +31,25 @@ jobs:
         cmd: wget -q https://registry.hub.docker.com/v1/repositories/minimicrowave/bs-ui/tags -O - | jq 'map(select(.name | contains("RELEASE"))) | last | .name'
 
     - 
-      name: Get latest BE release image
-      uses: sergeysova/jq-action@v2
-      id: be_release_version
-      with: 
-        cmd: wget -q https://registry.hub.docker.com/v1/repositories/minimicrowave/bs-api/tags -O - | jq 'map(select(.name | contains("RELEASE"))) | last | .name'
-    
-    - 
-      name: Show BE and FE release versions
+      name: Show FE release version
       run: > 
-        echo "FE version: ${{ steps.fe_release_version.outputs.value }}, BE version: ${{ steps.be_release_version.outputs.value }}"
+        echo "FE version: ${{ steps.fe_release_version.outputs.value }}"
     - 
       name: Release image check
-      if: steps.fe_release_version.outputs.value  == 'null' || steps.be_release_version.outputs.value == 'null'
+      if: steps.fe_release_version.outputs.value  == 'null'
       uses: actions/github-script@v3
       with:
         script: |
-            core.setFailed('FE or BE release versions missing!')
+            core.setFailed('FE release version missing!')
   
   deploy-service-stack:
     needs: check-release-images
     runs-on: ubuntu-latest
     steps:
     -
-      run: echo Deploying FE - docker.io/minimicrowave/bs-ui:${{needs.check-release-images.outputs.FE_IMAGE}}, BE - docker.io/minimicrowave/bs-ui:${{needs.check-release-images.outputs.FE_IMAGE}}
-    - 
+      run: echo Deploying FE - docker.io/minimicrowave/bs-ui:${{needs.check-release-images.outputs.FE_IMAGE}}
       name: Checkout
-      uses: actions/checkout@v2
+      uses: act${{ github.event.inputs.network-stack}}
     - 
       name: Configure AWS credentials
       id: creds
@@ -64,12 +63,12 @@ jobs:
       id: service-stack
       uses: aws-actions/aws-cloudformation-github-deploy@v1.0.3
       with:
-        name: bs-service-stack
-        template: service.yml
+        name: ${{ github.event.inputs.stack-name}}
+        template: service-fe.yml
         no-fail-on-empty-changeset: "1"
         parameter-overrides: >-
-          NetworkStackName=bs-network-stack,
-          DatabaseStackName=bs-rds-stack,
-          ServiceName=bs-service,
-          FEImageUrl=docker.io/minimicrowave/bs-ui:${{needs.check-release-images.outputs.FE_IMAGE}},
-          BEImageUrl=docker.io/minimicrowave/bs-api:${{needs.check-release-images.outputs.BE_IMAGE}}
+          NetworkStackName=${{ github.event.inputs.network-stack}},
+          ServiceName=${{ github.event.inputs.stack-name}},
+          ImageUrl=docker.io/minimicrowave/bs-ui:${{needs.check-release-images.outputs.FE_IMAGE}},
+          ContainerPort=80,
+          HealthCheckPath=/
