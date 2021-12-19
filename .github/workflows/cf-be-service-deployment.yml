@@ -19,7 +19,7 @@ on:
       stack-name:
         description: "Name of deploying stack"
         required: true
-        default: bs-be-service
+        default: bs-be-stack
 
 
 jobs:
