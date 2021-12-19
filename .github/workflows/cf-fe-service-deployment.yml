@@ -28,7 +28,7 @@ jobs:
       uses: sergeysova/jq-action@v2
       id: fe_release_version
       with: 
-        cmd: wget -q https://registry.hub.docker.com/v1/repositories/minimicrowave/bs-ui/tags -O - | jq 'map(select(.name | contains("RELEASE"))) | last | .name'
+        cmd: wget -q https://registry.hub.docker.com/v1/repositories/minimicrowave/bs-ui/tags -O - | jq -r 'map(select(.name | contains("RELEASE"))) | last | .name'
 
     - 
       name: Show FE release version

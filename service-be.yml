@@ -47,7 +47,6 @@ Parameters:
     Description: How many copies of the service task to run.
   JwtSecret:
     Type: String
-    Default: ""
     Description: The JWT secret for authentication encryption
 
 
