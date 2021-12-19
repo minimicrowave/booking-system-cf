@@ -33,7 +33,7 @@ jobs:
       uses: sergeysova/jq-action@v2
       id: be_release_version
       with: 
-        cmd: wget -q https://registry.hub.docker.com/v1/repositories/minimicrowave/bs-api/tags -O - | jq 'map(select(.name | contains("RELEASE"))) | last | .name'
+        cmd: wget -q https://registry.hub.docker.com/v1/repositories/minimicrowave/bs-api/tags -O - | jq -r 'map(select(.name | contains("RELEASE"))) | last | .name'
     
     - 
       name: Show BE release version
@@ -53,11 +53,6 @@ jobs:
     steps:
     -
       run: echo Deploying BE - docker.io/minimicrowave/bs-api:${{needs.check-release-images.outputs.BE_IMAGE}}
-    -
-      name: Get Image URL
-      id: get_image_url
-      run: |
-        echo ::set-output name=IMAGE_URL::docker.io/minimicrowave/bs-api:${{ needs.check-release-images.outputs.BE_IMAGE }}
     - 
       name: Checkout
       uses: actions/checkout@v2
@@ -80,7 +75,7 @@ jobs:
           NetworkStackName=${{ github.event.inputs.network-stack }},
           DatabaseStackName=${{ github.event.inputs.db-stack }},
           ServiceName=${{ github.event.inputs.stack-name}},
-          ImageUrl=${{ steps.get_image_url.outputs.IMAGE_URL  }},
+          ImageUrl=docker.io/minimicrowave/bs-api:${{ needs.check-release-images.outputs.BE_IMAGE}},
           ContainerPort=8080,
           HealthCheckPath=/health,
-          JwtSecret=${{ secrets.BE_JWT_SECRET }}
+          JwtSecret=${{ secrets.JWT_SECRET }}
