@@ -15,7 +15,7 @@ on:
       stack-name:
         description: "Name of deploying stack"
         required: true
-        default: bs-fe-service
+        default: bs-fe-stack
 
 jobs:
   check-release-images:
