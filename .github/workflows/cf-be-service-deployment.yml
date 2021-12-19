@@ -1,4 +1,4 @@
-name: Deploy Service Stack
+name: Deploy BE Service Stack
 env:
   CI: false
 on: 
@@ -63,12 +63,12 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ github.event.inputs.region}}
+        aws-region: ${{ github.event.inputs.region }}
     - 
-      name: ${{ github.event.inputs.stack-name}}
+      name: ${{ github.event.inputs.stack-name }}
       uses: aws-actions/aws-cloudformation-github-deploy@v1.0.3
       with:
-        name: ${{ github.event.inputs.stack-name}}
+        name: ${{ github.event.inputs.stack-name }}
         template: service-be.yml
         no-fail-on-empty-changeset: "1"
         parameter-overrides: >-

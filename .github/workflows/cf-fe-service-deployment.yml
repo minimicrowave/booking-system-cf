@@ -1,4 +1,4 @@
-name: Deploy Service Stack
+name: Deploy FE Service Stack
 env:
   CI: false
 on: 
@@ -48,8 +48,9 @@ jobs:
     steps:
     -
       run: echo Deploying FE - docker.io/minimicrowave/bs-ui:${{needs.check-release-images.outputs.FE_IMAGE}}
+    -
       name: Checkout
-      uses: act${{ github.event.inputs.network-stack}}
+      uses: actions/checkout@v2
     - 
       name: Configure AWS credentials
       id: creds
@@ -57,18 +58,18 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ github.event.inputs.region}}
+        aws-region: ${{ github.event.inputs.region }}
     - 
       name: Deploy Service Stack
       id: service-stack
       uses: aws-actions/aws-cloudformation-github-deploy@v1.0.3
       with:
-        name: ${{ github.event.inputs.stack-name}}
+        name: ${{ github.event.inputs.stack-name }}
         template: service-fe.yml
         no-fail-on-empty-changeset: "1"
         parameter-overrides: >-
-          NetworkStackName=${{ github.event.inputs.network-stack}},
-          ServiceName=${{ github.event.inputs.stack-name}},
-          ImageUrl=docker.io/minimicrowave/bs-ui:${{needs.check-release-images.outputs.FE_IMAGE}},
+          NetworkStackName=${{ github.event.inputs.network-stack }},
+          ServiceName=${{ github.event.inputs.stack-name }},
+          ImageUrl=docker.io/minimicrowave/bs-ui:${{ needs.check-release-images.outputs.FE_IMAGE }},
           ContainerPort=80,
           HealthCheckPath=/
