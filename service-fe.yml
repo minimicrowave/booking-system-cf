@@ -15,7 +15,7 @@ Parameters:
     Description: Path to perform the healthcheck on each instance.
   HealthCheckIntervalSeconds:
     Type: Number
-    Default: 5
+    Default: 90
     Description: Number of seconds to wait between each health check.
   ImageUrl:
     Type: String
