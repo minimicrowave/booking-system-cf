@@ -53,6 +53,11 @@ jobs:
     steps:
     -
       run: echo Deploying BE - docker.io/minimicrowave/bs-api:${{needs.check-release-images.outputs.BE_IMAGE}}
+    -
+      name: Get Image URL
+      id: get_image_url
+      run: |
+        echo ::set-output name=IMAGE_URL::docker.io/minimicrowave/bs-api:${{ needs.check-release-images.outputs.BE_IMAGE }}
     - 
       name: Checkout
       uses: actions/checkout@v2
@@ -75,7 +80,7 @@ jobs:
           NetworkStackName=${{ github.event.inputs.network-stack }},
           DatabaseStackName=${{ github.event.inputs.db-stack }},
           ServiceName=${{ github.event.inputs.stack-name}},
-          ImageUrl=docker.io/minimicrowave/bs-api:${{needs.check-release-images.outputs.BE_IMAGE}},
+          ImageUrl=${{ steps.get_image_url.outputs.IMAGE_URL  }},
           ContainerPort=8080,
           HealthCheckPath=/health,
-          JwtSecret=${{ secrets.JWT_SECRET }}
+          JwtSecret=${{ secrets.BE_JWT_SECRET }}
