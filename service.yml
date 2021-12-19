@@ -15,26 +15,18 @@ Parameters:
   HealthCheckPath:
     Type: String
     Default: /health
-    Description: Path to perform the health check on each instance.
+    Description: Path to perform the healthcheck on each instance.
   HealthCheckIntervalSeconds:
     Type: Number
     Default: 5
     Description: Number of seconds to wait between each health check.
-  FEImageUrl:
+  ImageUrl:
     Type: String
-    Description: The url of the FE docker image that will handle incoming traffic.
-  BEImageUrl:
-    Type: String
-    Description: The url of the BE docker image that will handle incoming traffic.
-  FEContainerPort:
-    Type: Number
-    Default: 80
-    Description: The port number the FE application inside the docker container
-      is binding to.
-  BEContainerPort:
+    Description: The url of a docker image that will handle incoming traffic.
+  ContainerPort:
     Type: Number
     Default: 8080
-    Description: The port number the FE application inside the docker container
+    Description: The port number the application inside the docker container
       is binding to.
   ContainerCpu:
     Type: Number
@@ -51,43 +43,48 @@ Parameters:
       should be connected to.
   DesiredCount:
     Type: Number
-    Default: 2
+    Default: 1
     Description: How many copies of the service task to run.
+  JwtSecret:
+    Type: String
+    Default: ""
+    Description: The JWT secret for authentication encryption
+
 
 Resources:
-
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      # HealthCheckIntervalSeconds: !Ref 'HealthCheckIntervalSeconds'
-      # HealthCheckPath: !Ref 'HealthCheckPath'
-      # HealthCheckProtocol: HTTP
-      # HealthCheckTimeoutSeconds: 5
-      # HealthyThresholdCount: 2
-      # TargetType: ip
-      # Name: !Ref 'ServiceName'
-      # Port: !Ref 'BEContainerPort'
+      HealthCheckIntervalSeconds: !Ref 'HealthCheckIntervalSeconds'
+      HealthCheckPath: !Ref 'HealthCheckPath'
+      HealthCheckProtocol: HTTP
+      HealthCheckPort: !Ref 'ContainerPort'
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      TargetType: ip
+      Name: !Ref 'ServiceName'
+      Port: !Ref 'ContainerPort'
       Protocol: HTTP
-      # UnhealthyThresholdCount: 2
-      # Matcher:
-      #   HttpCode: 200
+      UnhealthyThresholdCount: 2
       VpcId:
         Fn::ImportValue:
           !Join [':', [!Ref 'NetworkStackName', 'VPCId']]
 
-  LoadBalancerRule:
-    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+
+  PublicLoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    DependsOn:
+      - TargetGroup
     Properties:
-      Actions:
-        - TargetGroupArn: !Ref 'TargetGroup'
+      DefaultActions:
+        - TargetGroupArn: !Ref TargetGroup
           Type: 'forward'
-      Conditions:
-        - Field: path-pattern
-          Values: [!Ref 'Path']
-      ListenerArn:
+      LoadBalancerArn: 
         Fn::ImportValue:
-          !Join [':', [!Ref 'NetworkStackName', 'PublicListener']]
-      Priority: 1
+          !Join [':', [!Ref 'NetworkStackName', 'PublicLoadBalancer']]
+      Port: !Ref 'ContainerPort'
+      Protocol: HTTP
+
 
   LogGroup:
     Type: AWS::Logs::LogGroup
@@ -108,58 +105,49 @@ Resources:
         Fn::ImportValue:
           !Join [':', [!Ref 'NetworkStackName', 'ECSTaskExecutionRole']]
       ContainerDefinitions:
-        - Name: !Join ['', [!Ref 'ServiceName', '-be']]
+        - Name: !Ref 'ServiceName'
           Cpu: !Ref 'ContainerCpu'
           Memory: !Ref 'ContainerMemory'
-          Image: !Ref 'BEImageUrl'
+          Image: !Ref 'ImageUrl'
           Environment:
-            - Name: DB_TYPE
-              Value: 'mysql'
-            - Name: DB_HOST
-              Value: 
-                Fn::ImportValue: !Join [':', [!Ref 'DatabaseStackName', 'EndpointAddress']]
-            - Name: DB_PORT
-              Value:  
-                Fn::ImportValue: !Join [':', [!Ref 'DatabaseStackName', 'EndpointPort']]  
-            - Name: DB_NAME
-              Value:  
-                Fn::ImportValue: !Join [':', [!Ref 'DatabaseStackName', 'DBName']]
-            - Name: DB_USERNAME
-              Value: !Join
-                - ''
-                - - '{{resolve:secretsmanager:'
-                  - Fn::ImportValue: !Join [':', [!Ref 'DatabaseStackName', 'Secret']]
-                  - ':SecretString:username}}'   
-            - Name: DB_PASSWORD
-              Value: !Join
-                - ''
-                - - '{{resolve:secretsmanager:'
-                  - Fn::ImportValue: !Join [':', [!Ref 'DatabaseStackName', 'Secret']]
-                  - ':SecretString:password}}'
+              - Name: JWT_SECRET
+                Value: !Ref 'JwtSecret'
+              - Name: DB_TYPE
+                Value: 'mysql'
+              - Name: DB_HOST
+                Value: 
+                  Fn::ImportValue: !Join [':', [!Ref 'DatabaseStackName', 'EndpointAddress']]
+              - Name: DB_PORT
+                Value:  
+                  Fn::ImportValue: !Join [':', [!Ref 'DatabaseStackName', 'EndpointPort']]  
+              - Name: DB_NAME
+                Value:  
+                  Fn::ImportValue: !Join [':', [!Ref 'DatabaseStackName', 'DBName']]
+              - Name: DB_USERNAME
+                Value: !Join
+                  - ''
+                  - - '{{resolve:secretsmanager:'
+                    - Fn::ImportValue: !Join [':', [!Ref 'DatabaseStackName', 'Secret']]
+                    - ':SecretString:username}}'   
+              - Name: DB_PASSWORD
+                Value: !Join
+                  - ''
+                  - - '{{resolve:secretsmanager:'
+                    - Fn::ImportValue: !Join [':', [!Ref 'DatabaseStackName', 'Secret']]
+                    - ':SecretString:password}}'
+ 
           PortMappings:
-            - ContainerPort: !Ref 'BEContainerPort'
+            - ContainerPort: !Ref 'ContainerPort'
           LogConfiguration:
             LogDriver: 'awslogs'
             Options:
-              awslogs-group: !Join ['', [!Ref 'ServiceName', '-be']]
+              awslogs-group: !Ref 'ServiceName'
               awslogs-region: !Ref AWS::Region
               awslogs-stream-prefix: !Ref 'ServiceName'
-        - Name: !Join ['', [!Ref 'ServiceName', '-fe']]
-          Cpu: !Ref 'ContainerCpu'
-          Memory: !Ref 'ContainerMemory'
-          Image: !Ref 'FEImageUrl'
-          PortMappings:
-            - ContainerPort: !Ref 'FEContainerPort'
-          LogConfiguration:
-            LogDriver: 'awslogs'
-            Options:
-              awslogs-group: !Join ['', [!Ref 'ServiceName', '-fe']]
-              awslogs-region: !Ref AWS::Region
-              awslogs-stream-prefix: !Ref 'ServiceName'
+              
 
   Service:
     Type: AWS::ECS::Service
-    DependsOn: LoadBalancerRule
     Properties:
       ServiceName: !Ref 'ServiceName'
       Cluster:
@@ -183,9 +171,6 @@ Resources:
                 !Join [':', [!Ref 'NetworkStackName', 'PublicSubnetTwo']]
       TaskDefinition: !Ref 'TaskDefinition'
       LoadBalancers:
-        - ContainerName: !Join ['', [!Ref 'ServiceName', '-fe']]
-          ContainerPort: !Ref 'FEContainerPort'
-          TargetGroupArn: !Ref 'TargetGroup'
-        - ContainerName: !Join ['', [!Ref 'ServiceName', '-be']]
-          ContainerPort: !Ref 'BEContainerPort'
+        - ContainerName: !Ref 'ServiceName'
+          ContainerPort: !Ref 'ContainerPort'
           TargetGroupArn: !Ref 'TargetGroup'

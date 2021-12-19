@@ -1,8 +1,8 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: A network stack for deploying containers in AWS ECS.
   This stack creates a VPC with two public subnets and a loadbalancer to balance traffic between those subnets.
-Resources:
 
+Resources:
   VPC:
     Type: AWS::EC2::VPC
     Properties:
@@ -84,32 +84,6 @@ Resources:
         - !Ref PublicSubnetOne
         - !Ref PublicSubnetTwo
       SecurityGroups: [!Ref 'PublicLoadBalancerSecurityGroup']
-
-  DummyTargetGroupPublic:
-    Type: AWS::ElasticLoadBalancingV2::TargetGroup
-    Properties:
-      HealthCheckIntervalSeconds: 6
-      HealthCheckPath: /
-      HealthCheckProtocol: HTTP
-      HealthCheckTimeoutSeconds: 5
-      HealthyThresholdCount: 2
-      Name: "no-op"
-      Port: 80
-      Protocol: HTTP
-      UnhealthyThresholdCount: 2
-      VpcId: !Ref 'VPC'
-
-  PublicLoadBalancerListener:
-    Type: AWS::ElasticLoadBalancingV2::Listener
-    DependsOn:
-      - PublicLoadBalancer
-    Properties:
-      DefaultActions:
-        - TargetGroupArn: !Ref 'DummyTargetGroupPublic'
-          Type: 'forward'
-      LoadBalancerArn: !Ref 'PublicLoadBalancer'
-      Port: 80
-      Protocol: HTTP
 
   ECSCluster:
     Type: AWS::ECS::Cluster
@@ -270,11 +244,6 @@ Outputs:
     Value: !GetAtt 'ECSTaskExecutionRole.Arn'
     Export:
       Name: !Join [ ':', [ !Ref 'AWS::StackName', 'ECSTaskExecutionRole' ] ]
-  PublicListener:
-    Description: The ARN of the public load balancer's Listener
-    Value: !Ref PublicLoadBalancerListener
-    Export:
-      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'PublicListener' ] ]
   VPCId:
     Description: The ID of the VPC that this stack is deployed in
     Value: !Ref 'VPC'
@@ -295,3 +264,8 @@ Outputs:
     Value: !Ref 'ECSSecurityGroup'
     Export:
       Name: !Join [ ':', [ !Ref 'AWS::StackName', 'ECSSecurityGroup' ] ]
+  PublicLoadBalancer:
+    Description: PublicLoadBalancer
+    Value: !Ref 'PublicLoadBalancer'
+    Export:
+      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'PublicLoadBalancer' ] ]
