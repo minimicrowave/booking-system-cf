@@ -78,4 +78,4 @@ jobs:
           ImageUrl=docker.io/minimicrowave/bs-api:${{ needs.check-release-images.outputs.BE_IMAGE}},
           ContainerPort=8080,
           HealthCheckPath=/health,
-          JwtSecret=${{ secrets.JWT_SECRET }}
+          JwtSecret=${{ secrets.BE_JWT_SECRET }}
